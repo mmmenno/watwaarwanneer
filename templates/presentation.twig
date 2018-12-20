@@ -1,0 +1,42 @@
+
+<div class="col-md-4 presentationtxt">
+
+	<h3>{{ data.event.title }}</h3>
+
+    {% if data.event.typelabel is not empty %}
+    	(een <strong>{{ data.event.typelabel }}</strong>)<br />
+    {% endif %}
+
+    {{ data.event.start }}<br />
+
+    {% if data.actors is not empty %}
+        <h4>Betrokken:</h4>
+        {% for actor in data.actors %}
+        	<strong><a href="{{ actor.wikipedia }}">{{ actor.label }}</a></strong><br /> 
+        	{{ actor.description }}<br />
+    	{% endfor %}
+    {% endif %}
+
+    <button class="btn btn-default" onclick="showData({{ data.event.id }})">bekijk data</button>
+
+</div>
+<div class="col-md-4 presentationimg">
+	
+	{% for chobject in data.chobjects %}
+    	<img src="{{ chobject.img }}" />
+	{% endfor %}
+
+</div>
+<div class="col-md-4 presentationplace">
+	
+	{{ data.event.location }}
+
+</div>
+
+
+
+
+
+
+
+

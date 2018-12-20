@@ -1,0 +1,74 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+	{% for event in events %}
+		<div id="event{{ event.id }}" class="eventholder">
+		    <div class="row listitem">
+		        <div class="col-md-4 when">
+
+		            {{ event.start }}
+		            
+
+		        </div>
+		        <div class="col-md-8">
+		        	<a id="notevent{{ event.id }}">{{ event.title }}</a>
+		            
+
+		        </div>
+		    </div>
+		    <div class="row eventpresentation">
+		        hi there!
+		    </div>
+		    <div class="row eventdata">
+		        hi there, want data?
+		    </div>
+		</div>
+	    
+	{% endfor %}
+{% endblock %}
+
+{% block javascript %}
+	<script language="javascript">
+
+		$( document ).ready(function() {
+		    
+		    $(".listitem a").click(function(event){
+
+				presentationdiv = $(this).parents('.listitem').nextAll('.eventpresentation:first');
+				eventid = $(this).parents('.eventholder').attr('id');
+				eventid = eventid.replace("event","");
+				presentationdiv.load("{{ base_url() }}/parts/presentation/" + eventid);
+
+		    	$(".eventpresentation").hide();
+				$(".eventdata").hide();
+
+		    	presentationdiv.fadeIn(800);
+		    });
+		});
+
+		function showData(eventid){
+			$(".eventpresentation").hide();
+			datadiv = $('#event' + eventid + ' .eventdata');
+			datadiv.load("{{ base_url() }}/parts/data/" + eventid);
+			datadiv.fadeIn(800);
+		}
+
+		function showPresentation(eventid){
+			$(".eventdata").hide();
+			datadiv = $('#event' + eventid + ' .eventpresentation');
+			datadiv.load("{{ base_url() }}/parts/presentation/" + eventid);
+			datadiv.fadeIn(800);
+		}
+
+	</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,12 @@
+vendor/
+logs/*
+storage/cache/*
+!storage/cache/.keepme
+!storage/log
+storage/log/*
+!storage/log/.keepme
+.idea/
+.DS_Store
+app/settings.php
+composer.phar
+
