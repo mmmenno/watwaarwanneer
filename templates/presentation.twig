@@ -4,10 +4,10 @@
 	<h3>{{ data.event.title }}</h3>
 
     {% if data.event.typelabel is not empty %}
-    	(een <strong>{{ data.event.typelabel }}</strong>)<br />
+    	<strong>{{ data.event.typelabel }}</strong><br />
     {% endif %}
 
-    {{ data.event.start }}<br />
+    {{ data.event.time }}<br />
 
     {% if data.actors is not empty %}
         <h4>Betrokken:</h4>
@@ -23,14 +23,40 @@
 <div class="col-md-4 presentationimg">
 	
 	{% for chobject in data.chobjects %}
-    	<img src="{{ chobject.img }}" />
+    	<a href="{{ chobject.cho }}" target="_blank"><img src="{{ chobject.img }}" /></a>
 	{% endfor %}
 
 </div>
 <div class="col-md-4 presentationplace">
 	
-	{{ data.event.location }}
+	{% if data.location.lat is not empty %}
+        <div class="map" id="mapid{{ data.event.id }}"></div>
+        <script>
+            if (typeof mymap !== 'undefined') {
+                mymap.off();
+                mymap.remove();
+            }
+            mymap = L.map('mapid{{ data.event.id }}').setView([ {{ data.location.lat }} , {{ data.location.lon }} ], {{ data.location.zoom }});
 
+            L.tileLayer('//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(mymap);
+
+            var circle = L.circleMarker([{{ data.location.lat }} , {{ data.location.lon }}], {
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                opacity: 0,
+                radius: 15
+            }).addTo(mymap);
+
+        </script>
+    {% endif %}
+    <h3>{{ data.location.label }}</h3>
+    <h4>{{ data.location.municipalitylabel }}</h4>
+
+    
+    
 </div>
 
 

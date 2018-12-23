@@ -6,7 +6,7 @@
 		    <div class="row listitem">
 		        <div class="col-md-4 when">
 
-		            {{ event.start }}
+		            {{ event.time }}
 		            
 
 		        </div>
@@ -48,16 +48,18 @@
 
 		function showData(eventid){
 			$(".eventpresentation").hide();
-			datadiv = $('#event' + eventid + ' .eventdata');
-			datadiv.load("{{ base_url() }}/parts/data/" + eventid);
-			datadiv.fadeIn(800);
+			div = $('#event' + eventid + ' .eventdata');
+			div.empty();
+			div.load("{{ base_url() }}/parts/data/" + eventid);
+			div.fadeIn(800);
 		}
 
 		function showPresentation(eventid){
 			$(".eventdata").hide();
-			datadiv = $('#event' + eventid + ' .eventpresentation');
-			datadiv.load("{{ base_url() }}/parts/presentation/" + eventid);
-			datadiv.fadeIn(800);
+			div = $('#event' + eventid + ' .eventpresentation');
+			div.empty();
+			div.load("{{ base_url() }}/parts/presentation/" + eventid);
+			div.fadeIn(800);
 		}
 
 	</script>

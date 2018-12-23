@@ -31,8 +31,8 @@ class TimelineMapper extends Mapper
         return $results;
     }
 
-    public function getIncoming() {
-        $sql = "SELECT * FROM incoming WHERE processed <> 'yes'";
+    public function getIncoming($limit = 1) {
+        $sql = "SELECT * FROM incoming WHERE processed <> 'yes' LIMIT " . $limit;
         $stmt = $this->db->query($sql);
         $results = [];
         while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -49,6 +49,14 @@ class TimelineMapper extends Mapper
             $results[] = $row;
         }
         return $results;
+    }
+
+    public function getLocation($wdid) {
+        $sql = "SELECT * FROM locations WHERE wdid = '" . $wdid . "'";
+        $stmt = $this->db->query($sql);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+        return $row;
     }
 
     public function getEventtype($id) {

@@ -34,3 +34,7 @@ body{
 	margin-top: 20px;
 	margin-bottom: 20px;
 }
+.map{
+	height: 200px;
+	background-color: #ccc;
+}
