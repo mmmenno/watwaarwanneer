@@ -51,6 +51,49 @@ class Wikidata {
         return $values;
     }
 
+    public function getEventdata() {
+
+        $itemlist = "wd:" . implode(" wd:", $this->wdids);
+
+        $sparql = 'PREFIX wd: <http://www.wikidata.org/entity/>
+					PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+					PREFIX schema: <http://schema.org/>
+					PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+					SELECT ?item ?label ?wikipedia WHERE {
+					  VALUES ?item {' . $itemlist . '}
+					  ?item rdfs:label ?label .
+					  OPTIONAL {
+					    ?wikipedia schema:about ?item .
+					    ?wikipedia schema:inLanguage "nl" .
+					    ?wikipedia schema:isPartOf <https://nl.wikipedia.org/> .
+					  }
+					  FILTER (LANG(?label) = "nl")
+					}
+					LIMIT 100';
+
+		$encoded = urlencode($sparql);
+		 $json = file_get_contents("https://query.wikidata.org/sparql?query=" . $encoded . "&format=json");
+        $data = json_decode($json,true);
+        
+        // fill array
+        $values = array();
+        foreach ($data['results']['bindings'] as $rec) {
+        	$id = str_replace("http://www.wikidata.org/entity/", "", $rec['item']['value']);
+        	if(!isset($rec['label']['value'])){
+        		$rec['label']['value'] = "";
+        	}
+        	if(!isset($rec['wikipedia']['value'])){
+        		$rec['wikipedia']['value'] = "";
+        	}
+        	$values[$id] = array(
+			        		"label" => $rec['label']['value'],
+			        		"wikipedia" => $rec['wikipedia']['value']
+			        	);
+        }
+        return $values;
+    }
+
     public function getEventtypesdata() {
 
         $itemlist = "wd:" . implode(" wd:", $this->wdids);

@@ -1,10 +1,26 @@
 
 <div class="col-md-4 presentationtxt">
 
-	<h3>{{ data.event.title }}</h3>
+	    
+    {% if data.event.wdid_wiki is not empty %}
+        <h3><a href="{{ data.event.wdid_wiki }}">{{ data.event.title }}</a></h3>
+    {% else %}
+        <h3>{{ data.event.title }}</h3>
+    {% endif %}
+
+    
 
     {% if data.event.typelabel is not empty %}
-    	<strong>{{ data.event.typelabel }}</strong><br />
+        <strong>{{ data.event.typelabel }}</strong><br />
+    {% endif %}
+
+    {% if data.event.wdid_broader_wiki is not empty %}
+        onderdeel van:<br />
+        <strong><a href="{{ data.event.wdid_broader_wiki }}">{{ data.event.wdid_broader_label }}</a></strong><br />
+    {% endif %}
+
+    {% if data.event.wdbwk is not empty %}
+        <strong>{{ data.event.wdbwk }}</strong><br />
     {% endif %}
 
     {{ data.event.time }}<br />
@@ -53,7 +69,7 @@
         </script>
     {% endif %}
     <h3>{{ data.location.label }}</h3>
-    <h4>{{ data.location.municipalitylabel }}</h4>
+    <h4>{{ data.location.municipalitylabel }}, {{ data.location.provincelabel }}</h4>
 
     
     

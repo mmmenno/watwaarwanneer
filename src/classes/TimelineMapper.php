@@ -12,9 +12,26 @@ class TimelineMapper extends Mapper
     }
 
     public function getEvent($id) {
-        $sql = "SELECT e.*,t.wdid AS typewdid, t.label AS typelabel,t.description AS typedescription FROM events AS e 
+        $sql = "SELECT  e.*,
+                        t.wdid AS typewdid, 
+                        t.label AS typelabel,
+                        t.description AS typedescription, 
+                        l.wdid AS locationwdid,
+                        l.label,
+                        l.class,
+                        l.classlabel,
+                        l.description,
+                        l.municipality,
+                        l.municipalitylabel,
+                        l.province,
+                        l.provincelabel,
+                        l.lat,
+                        l.lon,
+                        l.wikipedia AS locationwiki
+                FROM events AS e 
                 LEFT JOIN event_x_eventtype as x ON e.id = x.event_id
                 LEFT JOIN eventtypes as t ON x.eventtype_wdid = t.wdid
+                LEFT JOIN locations AS l ON e.location = l.wdid
                 WHERE e.id = " . $id;
         $stmt = $this->db->query($sql);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);

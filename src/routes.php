@@ -68,8 +68,17 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 	$period = new Time($event['start'], $event['end']);
 	$ttlperiod = $period->turtle();
 
+	$turtle = "PREFIX wd: <http://www.wikidata.org/entity/>\n";
+	$turtle .= "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n";
+	$turtle .= "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n";
+	$turtle .= "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n";
+	$turtle .= "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n";
+	$turtle .= "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n";
+	$turtle .= "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n";
+	$turtle .= "PREFIX dc: <http://purl.org/dc/elements/1.1/>\n";
+	$turtle .= "PREFIX sem: <http://semanticweb.cs.vu.nl/2009/11/sem/>\n\n";
 
-	$turtle = "<https://watwaarwanneer.info/event/" . $event['id'] . ">\n";
+	$turtle .= "<https://watwaarwanneer.info/event/" . $event['id'] . ">\n";
 	$turtle .= "\tsem:eventType wd:" . $event['typewdid'] . " ;\n";
 	$turtle .= "\trdfs:label \"" . str_replace("\"", "'", $event['title']) . "\" ;\n";
 	$turtle .= $ttlperiod;
@@ -81,9 +90,14 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 		}
 		$turtle .= implode(", ", $wdids) . " ;\n";
 	}
+	if($event['location']!=""){
+		$turtle .= "\tsem:hasPlace wd:" . $event['location'] . " ;\n";
+	}
+	if($event['wdid_broader']!=""){
+		$turtle .= "\tsem:subEventOf wd:" . $event['wdid_broader'] . " ;\n";
+	}
 	$turtle .= "\trdf:type sem:Event .\n\n";
 	
-	$turtle .= "# type\n";
 	$turtle .= "wd:" . $event['typewdid'] . "\n";
 	if($event['typedescription']!=""){
 		$turtle .= "\tdc:description \"" . addslashes($event['typedescription']) . "\" ;\n";
@@ -91,7 +105,17 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 	$turtle .= "\trdfs:label \"" . addslashes($event['typelabel']) . "\" ;\n";
 	$turtle .= "\trdf:type sem:EventType .\n\n";
 
-	$turtle .= "# actors\n";
+	if($event['wdid_broader_label']!=""){
+		$turtle .= "wd:" . $event['wdid_broader'] . " \n";
+		$turtle .= "\trdfs:label \"" . $event['wdid_broader_label'] . "\" ;\n";
+		$turtle .= "\tsem:hasSubEvent <https://watwaarwanneer.info/event/" . $event['id'] . "> .\n";
+		if($event['wdid_broader_wiki']!=""){
+			$turtle .= "\tfoaf:isPrimaryTopicOf \"" . $event['wdid_broader_wiki'] . "\" ;\n";
+		}
+		$turtle .= "\trdf:type sem:Event .\n\n";
+	}
+	
+
 	foreach($actors as $actor){
 		$turtle .= "wd:" . $actor['wdid'] . "\n";
 		$turtle .= "\trdfs:label \"" . addslashes($actor['label']) . "\" ;\n";
@@ -103,6 +127,18 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 		}
 		$turtle .= "\trdf:type sem:Actor .\n\n";
 	}
+	
+	$turtle .= "wd:" . $event['locationwdid'] . "\n";
+	$turtle .= "\trdfs:label \"" . str_replace("\"", "\"", $event['label']) . "\" ;\n";
+	if($event['municipality']!=""){
+		$turtle .= "\twdt:P131 wd:" . $event['municipality'] . " ; # in municipality " . $event['municipalitylabel'] . "\n";
+	}
+	if($event['lat']!=""){
+		$turtle .= "\tgeo:hasGeometry [geo:asWKT \"Point(" . $event['lon'] . " " . $event['lat'] . ")\"];\n";
+	}
+	$turtle .= "\twdt:P31 wd:" . $event['class'] . " ; # is a " . $event['classlabel'] . "\n";
+	$turtle .= "\trdf:type sem:Place .\n\n";
+
 	
 	$data = array("event"=>$event,"turtle"=>$turtle);
 	
@@ -125,6 +161,7 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
     $eventtypes = array();
     $actors = array();
     $locations = array();
+    $wdevents = array();
 
     
     // get wikidata ids
@@ -153,6 +190,15 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
     			$locations[] = trim($locationvalue);
     		}
     	}
+
+    	// events
+   		if(trim($event['wdid'])!=""){
+			$wdevents[] = trim($event['wdid']);
+		}
+   		if(trim($event['wdid_broader'])!=""){
+			$wdevents[] = trim($event['wdid_broader']);
+		}
+	
     }
 
     // get additional info from wikidata
@@ -165,15 +211,40 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
 	$wiki = new Wikidata($locations);
 	$locations = $wiki->getLocationsdata();
 
-	 // insert events
+	$wiki = new Wikidata($wdevents);
+	$wdevents = $wiki->getEventdata();
+
+	//print_r($wdevents);
+	//die;
+
+	// insert events
 	foreach ($events as $k => $event) {
+
 
 		// event itself
     	// todo: check if existing event (if title is watwaarwanner.info uri)
     	$stmt = $this->pdo->prepare(
-	        "INSERT INTO events (title,type,start,end,fictional,wdid,wdid_broader,location) VALUES (
-	        :ti,:ty,:st,:en,:fi,:wd,:wdb,:lo)"
+	        "INSERT INTO events (
+	        title,type,start,end,fictional,wdid,wdid_wiki,wdid_broader,wdid_broader_label,wdid_broader_wiki,location
+	        ) VALUES (
+	        :ti,:ty,:st,:en,:fi,:wd,:wdwk,:wdb,:wdbl,:wdbwk,:lo)"
 	    );
+	    if(isset($wdevents[$event['wdid_broader']]['label'])){
+	    	$broaderlabel = $wdevents[$event['wdid_broader']]['label'];
+	    }else{
+	    	$broaderlabel = "";
+	    }
+	    if(isset($wdevents[$event['wdid']]['wikipedia'])){
+	    	$wdwk = $wdevents[$event['wdid']]['wikipedia'];
+	    }else{
+	    	$wdwk = "";
+	    }
+	    if(isset($wdevents[$event['wdid_broader']]['wikipedia'])){
+	    	$wdbwk = $wdevents[$event['wdid_broader']]['wikipedia'];
+	    }else{
+	    	$wdbwk = "";
+	    }
+	    //echo "hiero " . $wdwk . " __ " . $wdbwk . "!\n\n";
 	    $stmt->execute([
 	        ':ti' => $event['title'],
 	        ':ty' => $event['type'],
@@ -181,7 +252,10 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
 	        ':en' => $event['end'],
 	        ':fi' => $event['fictional'],
 	        ':wd' => $event['wdid'],
+	        ':wdwk' => $wdwk,
 	        ':wdb' => $event['wdid_broader'],
+	        ':wdbl' => $broaderlabel,
+	        ':wdbwk' => $wdbwk,
 	        ':lo' => $event['location']
 	    ]);
 	    $eventid = $this->pdo->lastInsertId();
