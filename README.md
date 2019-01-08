@@ -1,5 +1,6 @@
 # watwaarwanneer.info
 
+![pink](screendump.png)
 
 This project might turn into something that identifies events in Dutch history, thus providing heritage institutions with URIs to use within their collections (we definitely need something like that, although preferably an institute with proper resources would initiate such a thing).
 
