@@ -1,7 +1,30 @@
 {% extends 'layout.twig' %}
 
+{% block search %}
+
+	<form action="/" method="get">
+		<select class="form-control" name="eventtype">
+			<option value="">-- type --</option>
+			{% for type in data.eventtypes %}
+				<option {% if type.wdid == data.filter.eventtype %}selected="selected"{% endif %} value="{{ type.wdid }}">{{ type.label }}</option>
+			{% endfor %}
+		</select>
+		<select class="form-control" name="province">
+			<option value="">-- provincie --</option>
+			{% for prov in data.provinces %}
+				<option {% if prov.province == data.filter.province %}selected="selected"{% endif %} value="{{ prov.province }}">{{ prov.provincelabel }}</option>
+			{% endfor %}
+		</select>
+		<input class="btn btn-default" type="submit" value="go"> 
+		<a href="/" class="btn btn-default">clear</a>
+	</form>
+
+{% endblock %}
+
+
+
 {% block content %}
-	{% for event in events %}
+	{% for event in data.events %}
 		<div id="event{{ event.id }}" class="eventholder">
 		    <div class="row listitem">
 		        <div class="col-md-4 when">
@@ -17,10 +40,10 @@
 		        </div>
 		    </div>
 		    <div class="row eventpresentation">
-		        hi there!
+
 		    </div>
 		    <div class="row eventdata">
-		        hi there, want data?
+
 		    </div>
 		</div>
 	    
@@ -37,12 +60,17 @@
 				presentationdiv = $(this).parents('.listitem').nextAll('.eventpresentation:first');
 				eventid = $(this).parents('.eventholder').attr('id');
 				eventid = eventid.replace("event","");
-				presentationdiv.load("{{ base_url() }}/parts/presentation/" + eventid);
 
-		    	$(".eventpresentation").hide();
-				$(".eventdata").hide();
+				if(presentationdiv.is(":visible")){
+					presentationdiv.hide();
+				}else{
+					presentationdiv.load("{{ base_url() }}/parts/presentation/" + eventid);
 
-		    	presentationdiv.fadeIn(800);
+			    	$(".eventpresentation").hide();
+					$(".eventdata").hide();
+
+			    	presentationdiv.fadeIn(800);
+			    }
 		    });
 		});
 

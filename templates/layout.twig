@@ -28,14 +28,16 @@
 
 
     <link rel="stylesheet" href="{{ base_url() }}/css/styles.css" type="text/css">
-    <style>
-        body {margin-top:70px;}
-    </style>
-
+    
 </head>
 <body>
 
 
+<div class="container-fluid" id="search">
+    
+    {% block search %}{% endblock %}
+
+</div>
 
 <div class="container-fluid" id="content">
     

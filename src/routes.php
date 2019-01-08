@@ -8,19 +8,26 @@ use Slim\Http\Response;
 
 $app->get('/', function (Request $request, Response $response, $args) {
 
+
 	$mapper = new TimelineMapper($this->pdo);
-    $events = $mapper->getEvents();
+    $events = $mapper->getEvents($_GET);
+    $eventtypes = $mapper->getTypes();
+    $provinces = $mapper->getProvinces();
 
     for($i=0; $i<count($events); $i++){
     	$period = new Time($events[$i]['start'], $events[$i]['end']);
     	$hrperiod = $period->humanreadable();
     	$events[$i]['time'] = $hrperiod;
     }
+    $data = array(	"events"=>$events, 
+    				"eventtypes"=>$eventtypes, 
+    				"provinces"=>$provinces, 
+    				"filter"=>$_GET);
 
     $response = $this->view->render(
         $response,
         'timeline.twig',
-        ["events"=>$events]
+        ["data"=>$data]
     );
     return $response;
 })->setName('home');
@@ -98,12 +105,15 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 	}
 	$turtle .= "\trdf:type sem:Event .\n\n";
 	
-	$turtle .= "wd:" . $event['typewdid'] . "\n";
-	if($event['typedescription']!=""){
-		$turtle .= "\tdc:description \"" . addslashes($event['typedescription']) . "\" ;\n";
+
+	if($event['typewdid']!=""){
+		$turtle .= "wd:" . $event['typewdid'] . "\n";
+		if($event['typedescription']!=""){
+			$turtle .= "\tdc:description \"" . addslashes($event['typedescription']) . "\" ;\n";
+		}
+		$turtle .= "\trdfs:label \"" . addslashes($event['typelabel']) . "\" ;\n";
+		$turtle .= "\trdf:type sem:EventType .\n\n";
 	}
-	$turtle .= "\trdfs:label \"" . addslashes($event['typelabel']) . "\" ;\n";
-	$turtle .= "\trdf:type sem:EventType .\n\n";
 
 	if($event['wdid_broader_label']!=""){
 		$turtle .= "wd:" . $event['wdid_broader'] . " \n";
@@ -131,12 +141,12 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 	$turtle .= "wd:" . $event['locationwdid'] . "\n";
 	$turtle .= "\trdfs:label \"" . str_replace("\"", "\"", $event['label']) . "\" ;\n";
 	if($event['municipality']!=""){
-		$turtle .= "\twdt:P131 wd:" . $event['municipality'] . " ; # in municipality " . $event['municipalitylabel'] . "\n";
+		//$turtle .= "\twdt:P131 wd:" . $event['municipality'] . " ; # in municipality " . $event['municipalitylabel'] . "\n";
 	}
 	if($event['lat']!=""){
 		$turtle .= "\tgeo:hasGeometry [geo:asWKT \"Point(" . $event['lon'] . " " . $event['lat'] . ")\"];\n";
 	}
-	$turtle .= "\twdt:P31 wd:" . $event['class'] . " ; # is a " . $event['classlabel'] . "\n";
+	//$turtle .= "\twdt:P31 wd:" . $event['class'] . " ; # is a " . $event['classlabel'] . "\n";
 	$turtle .= "\trdf:type sem:Place .\n\n";
 
 	

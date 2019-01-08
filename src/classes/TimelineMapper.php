@@ -1,8 +1,19 @@
 <?php
 class TimelineMapper extends Mapper
 {
-    public function getEvents() {
-        $sql = "SELECT * FROM events ORDER BY start ASC";
+    public function getEvents($filter) {
+        //print_r($filter);
+        $sql = "SELECT e.* FROM events AS e 
+                LEFT JOIN event_x_eventtype AS xet ON e.id = xet.event_id
+                LEFT JOIN locations AS l ON e.location = l.wdid";
+        $sql .= " WHERE e.id>0";
+        if(isset($filter['eventtype']) && $filter['eventtype'] !=""){
+            $sql .= " AND xet.eventtype_wdid = '" . $filter['eventtype'] . "'";
+        }
+        if(isset($filter['province']) && $filter['province'] !=""){
+            $sql .= " AND l.province = '" . $filter['province'] . "'";
+        }
+        $sql .= " ORDER BY start ASC";
         $stmt = $this->db->query($sql);
         $results = [];
         while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -91,6 +102,28 @@ class TimelineMapper extends Mapper
         $sql = "SELECT a.* FROM event_x_actor AS x
                 LEFT JOIN actors AS a ON x.actor_wdid = a.wdid 
                 WHERE x.event_id = '" . $eventid . "'";
+        $stmt = $this->db->query($sql);
+        $results = [];
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $results[] = $row;
+        }
+        return $results;
+    }
+
+
+    public function getTypes() {
+        $sql = "SELECT DISTINCT(wdid), label FROM eventtypes GROUP BY wdid ORDER BY label ASC";
+        $stmt = $this->db->query($sql);
+        $results = [];
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $results[] = $row;
+        }
+        return $results;
+    }
+
+
+    public function getProvinces() {
+        $sql = "SELECT DISTINCT(province), provincelabel FROM locations GROUP BY province ORDER BY provincelabel ASC";
         $stmt = $this->db->query($sql);
         $results = [];
         while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
