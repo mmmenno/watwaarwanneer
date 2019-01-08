@@ -7,6 +7,6 @@ storage/log/*
 !storage/log/.keepme
 .idea/
 .DS_Store
-app/settings.php
+src/settings.php
 composer.phar
 
