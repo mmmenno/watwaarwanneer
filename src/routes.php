@@ -33,6 +33,28 @@ $app->get('/', function (Request $request, Response $response, $args) {
 })->setName('home');
 
 
+$app->get('/event/{id}', function (Request $request, Response $response, $args) {
+
+	$mapper = new AdamlinkMapper();
+    $event = $mapper->getEvent($args['id']);
+
+    $period = new Time($event['event']['begin'], $event['event']['end']);
+	$hrperiod = $period->humanreadable();
+	$event['event']['time'] = $hrperiod;
+
+	$data = array("event"=>$event['event'],"chobjects"=>$event['imgs'],"locations"=>$event['venues']);
+	
+	$response = $this->view->render(
+        $response,
+        'event.twig',
+        [
+        	"data"=>$data
+    	]
+    );
+    return $response;
+});
+
+
 $app->get('/parts/presentation/{id}', function (Request $request, Response $response, $args) {
 
 	$mapper = new TimelineMapper($this->pdo);
@@ -163,10 +185,14 @@ $app->get('/parts/data/{id}', function (Request $request, Response $response, $a
 });
 
 
+
 $app->get('/datamagic/batch', function (Request $request, Response $response, $args) {
 
 	$mapper = new TimelineMapper($this->pdo);
     $events = $mapper->getIncoming(100);
+
+    //print_r($events);
+    //die;
 
     $eventtypes = array();
     $actors = array();
@@ -230,7 +256,8 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
 	// insert events
 	foreach ($events as $k => $event) {
 
-
+		print_r($event);
+		//die;
 		// event itself
     	// todo: check if existing event (if title is watwaarwanner.info uri)
     	$stmt = $this->pdo->prepare(
@@ -279,6 +306,12 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
     		}
     	}
     	foreach ($types as $wdid) {
+    		if(!$eventtypes[$wdid]['label']){
+    			$eventtypes[$wdid]['label'] = "";
+    		}
+			if(!$eventtypes[$wdid]['description']){
+    			$eventtypes[$wdid]['description'] = "";
+    		}
 			$stmt = $this->pdo->prepare(
 		        "INSERT INTO event_x_eventtype (event_id,eventtype_wdid) VALUES (
 		        :ev,:wd)"
@@ -340,33 +373,37 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
 		}
 
 		// cho
-    	$chopids = explode("|",$event['cho_pid']);
-    	$pids = array();
-    	foreach ($chopids as $pid) {
-    		$pids[] = trim($pid);
-    	}
+		if(trim($event['cho_pid'])!=""){
+			$chopids = explode("|",$event['cho_pid']);
+	    	$pids = array();
+	    	foreach ($chopids as $pid) {
+	    		$pids[] = trim($pid);
+	    	}
+	    
 
-    	$images = explode("|",$event['cho_img']);
-    	$imgs = array();
-    	foreach ($images as $img) {
-    		$imgs[] = trim($img);
-    	}
-
-    	for($i=0; $i<count($pids); $i++){
-    		if(!isset($pids[$i]) || !isset($imgs[$i]) || $imgs[$i]=="" || $pids[$i]==""){
-    			echo "count of cho's and imgs not matching in " . $event['title'];
-    			die;
-    		}
-			$stmt = $this->pdo->prepare(
-		        "INSERT INTO chobjects (event_id,cho,img,provider) VALUES (
-		        :ev,:cho,:img,:pr)"
-		    );
-		    $stmt->execute([
-		        ':ev' => $eventid,
-		        ':cho' => $pids[$i],
-		        ':img' => $imgs[$i],
-		        ':pr' => $event['provider']
-		    ]);
+	    	$images = explode("|",$event['cho_img']);
+	    	$imgs = array();
+	    	foreach ($images as $img) {
+	    		$imgs[] = trim($img);
+	    	}
+    	
+    		print_r($pids);
+	    	for($i=0; $i<count($pids); $i++){
+	    		if(!isset($pids[$i]) || !isset($imgs[$i]) || $imgs[$i]=="" || $pids[$i]==""){
+	    			echo "count of cho's and imgs not matching in " . $event['title'];
+	    			die;
+	    		}
+				$stmt = $this->pdo->prepare(
+			        "INSERT INTO chobjects (event_id,cho,img,provider) VALUES (
+			        :ev,:cho,:img,:pr)"
+			    );
+			    $stmt->execute([
+			        ':ev' => $eventid,
+			        ':cho' => $pids[$i],
+			        ':img' => $imgs[$i],
+			        ':pr' => $event['provider']
+			    ]);
+			}
 		}
 
     	// actors
@@ -379,7 +416,15 @@ $app->get('/datamagic/batch', function (Request $request, Response $response, $a
     	}
 
     	foreach ($actorids as $wdactor) {
-			
+			if(!$actors[$wdactor]['label']){ 
+				$actors[$wdactor]['label'] = ""; 
+			}
+    		if(!$actors[$wdactor]['description']){ 
+				$actors[$wdactor]['description'] = ""; 
+			}
+    		if(!$actors[$wdactor]['wikipedia']){ 
+				$actors[$wdactor]['wikipedia'] = ""; 
+			}
     		$stmt = $this->pdo->prepare(
 		        "INSERT INTO actors 
 		        	(wdid,label,description,wikipedia) 
