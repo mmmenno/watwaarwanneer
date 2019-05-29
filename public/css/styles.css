@@ -33,9 +33,12 @@ a,a:hover{
 .presentationtxt h3{
 	margin-top: 0;
 }
-.presentationimg img{
+.presentationimg img, .eventimgs img{
 	width: 100%;
 	margin-bottom: 6px;
+}
+.eventimgs img{
+	margin-top: 24px;
 }
 .btn-default{
 	margin-top: 20px;

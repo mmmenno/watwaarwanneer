@@ -1,0 +1,48 @@
+
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <div class="col-md-4">
+        <h2>{{ data.event.label }}</h2>
+        {{ data.event.time }}
+
+
+        {% for location in data.locations %}
+            <h3>{{ location.placelabel }}</h3>
+            <strong><a href="{{ location.place }}">{{ location.place }}</a></strong><br /> 
+            <strong><a href="{{ location.article }}">{{ location.article }}</a></strong>
+        {% endfor %}
+    	    
+        
+
+    </div>
+    <div class="col-md-4 eventimgs">
+
+        {% set half = data.chobjects|length/2 %}
+        {% set half = half|round %}
+
+    	{% for img in data.chobjects|slice(0,half) %}
+            <img src="{{ img.img }}" />
+            <h4>{{ img.title }}</h4>
+            <p>{{ img.description }}</p>
+        {% endfor %}
+
+    </div>
+    <div class="col-md-4 eventimgs">
+        
+    	{% for img in data.chobjects|slice(half) %}
+            <img src="{{ img.img }}" />
+            <h4>{{ img.title }}</h4>
+            <p>{{ img.description }}</p>
+        {% endfor %}
+    	
+        
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
