@@ -1,0 +1,93 @@
+
+{% extends 'layout2.twig' %}
+
+{% block header %}
+    <div class="col-md-12">
+      <h1>watwaarwanneer / location</h1>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="col-md-4">
+        
+
+        <h3>{{ data.location.placelabel }}</h3>
+        <strong><a href="{{ data.location.place }}">{{ data.location.place }}</a></strong><br /> 
+        <strong><a href="{{ data.location.article }}">{{ data.location.article }}</a></strong>
+
+        {% if data.location.lat is not empty %}
+            <div class="map" id="mapid"></div>
+            <script>
+                if (typeof mymap !== 'undefined') {
+                    mymap.off();
+                    mymap.remove();
+                }
+                mymap = L.map('mapid').setView([ {{ data.location.lat }} , {{ data.location.lon }} ], 16);
+
+                L.tileLayer('//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                }).addTo(mymap);
+
+                var circle = L.circleMarker([{{ data.location.lat }} , {{ data.location.lon }}], {
+                    fillColor: '#f03',
+                    fillOpacity: 0.5,
+                    opacity: 0,
+                    radius: 15
+                }).addTo(mymap);
+
+            </script>
+        {% endif %}
+
+        
+    	    
+        <h3 class="typeheading">actoren op deze locatie</h3>
+        
+        {% for actor in data.actors %}
+            <h3>{{ actor.actorlabel }}</h3>
+            {% if actor.actordescription is not empty %}
+                <p>{{ actor.actordescription }}</p> 
+            {% endif %}
+            {% if actor.actorrole is not empty %}
+                <p>rol: {{ actor.actorrole }}</p>
+            {% endif %}
+            <strong><a href="{{ actor.actorpage }}">{{ actor.actorpage }}</a></strong>
+            <strong><a href="{{ actor.actorid }}">{{ actor.actorid }}</a></strong>
+        {% endfor %}
+
+    </div>
+    <div class="col-md-8">
+        <h3 class="typeheading">events op deze locatie</h3>
+        <div class="row">
+            <div class="col-md-6">
+
+                {% set half = data.events|length/2 %}
+                {% set half = half|round %}
+
+                {% for event in data.events|slice(0,half) %}
+                    <h4>{{ event.label }}</h4>
+                    {{ event.time }}<br />
+                    <a href="{{ event.event }}">{{ event.event }}</strong></a>
+                {% endfor %}
+
+
+            </div>
+            <div class="col-md-6">
+                
+            	{% for event in data.events|slice(half) %}
+                    <h4>{{ event.label }}</h4>
+                    {{ event.time }}<br />
+                    <a href="{{ event.event }}">{{ event.event }}</strong></a>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+

@@ -56,6 +56,31 @@ $app->get('/event/{id}', function (Request $request, Response $response, $args) 
 });
 
 
+$app->get('/location/{id}', function (Request $request, Response $response, $args) {
+
+	$mapper = new AdamlinkMapper();
+    $location = $mapper->getLocation($args['id']);
+
+    for($i=0; $i<count($location['events']); $i++){
+    	$period = new Time($location['events'][$i]['begin'], $location['events'][$i]['end']);
+		$hrperiod = $period->humanreadable();
+		$location['events'][$i]['time'] = $hrperiod;
+	}
+
+	$data = array("location"=>$location['location'],"events"=>$location['events'],"actors"=>$location['actors']);
+	
+	//print_r($data);
+	$response = $this->view->render(
+        $response,
+        'location.twig',
+        [
+        	"data"=>$data
+    	]
+    );
+    return $response;
+});
+
+
 $app->get('/parts/presentation/{id}', function (Request $request, Response $response, $args) {
 
 	$mapper = new TimelineMapper($this->pdo);

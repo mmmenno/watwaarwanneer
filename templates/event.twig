@@ -1,6 +1,14 @@
 
 {% extends 'layout2.twig' %}
 
+{% block header %}
+    <div class="col-md-12">
+      <h1>watwaarwanneer / event</h1>
+    </div>
+{% endblock %}
+
+
+
 {% block content %}
     <div class="col-md-4">
         <h2>{{ data.event.label }}</h2>
@@ -37,6 +45,8 @@
 
                 </script>
             {% endif %}
+
+            <a href="/location/{{ location.place|replace(({"http://www.wikidata.org/entity/":""})) }}">Bekijk alle events op deze locatie</a>
 
         {% endfor %}
     	    

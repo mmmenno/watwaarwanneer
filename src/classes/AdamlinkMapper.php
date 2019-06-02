@@ -127,4 +127,93 @@ class AdamlinkMapper {
         return $values;
     }
 
+
+
+
+
+    public function getLocation($id) {
+
+		$sparqlquery = '
+			PREFIX owl: <http://www.w3.org/2002/07/owl#>
+			PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+			PREFIX dct: <http://purl.org/dc/terms/>
+			PREFIX dc: <http://purl.org/dc/elements/1.1/>
+			PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+			PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+			PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+			PREFIX wd: <http://www.wikidata.org/entity/>
+			PREFIX sem: <http://semanticweb.cs.vu.nl/2009/11/sem/>
+			SELECT ?placelabel ?article ?event ?eventlabel ?begin ?end ?placegeom ?actorid ?actorlabel WHERE {
+			  wd:' . $id . ' geo:hasGeometry/geo:asWKT ?placegeom .
+			  wd:' . $id . ' rdfs:label ?placelabel .
+			  OPTIONAL{ 
+			  	wd:' . $id . ' foaf:isPrimaryTopicOf ?article .
+			  }
+			  ?event sem:hasPlace wd:' . $id . ' .
+			  ?event a sem:Event .
+			  ?event rdfs:label ?eventlabel .
+			  ?event sem:hasEarliestBeginTimeStamp ?begin .
+			  ?event sem:hasLatestEndTimeStamp ?end .
+			  OPTIONAL{ 
+			    ?event sem:hasActor/rdf:value ?actorid .
+			    ?actorid rdfs:label ?actorlabel .
+			  }
+			} 
+			ORDER BY ASC(?begin)
+			LIMIT 200
+		';
+
+		$url = "https://api.druid.datalegend.net/datasets/adamnet/all/services/endpoint/sparql?query=" . urlencode($sparqlquery) . "";
+
+		$querylink = "https://druid.datalegend.net/AdamNet/all/sparql/endpoint#query=" . urlencode($sparqlquery) . "&endpoint=https%3A%2F%2Fdruid.datalegend.net%2F_api%2Fdatasets%2FAdamNet%2Fall%2Fservices%2Fendpoint%2Fsparql&requestMethod=POST&outputFormat=table";
+
+
+		// Druid does not like url parameters, send accept header instead
+		$opts = [
+		    "http" => [
+		        "method" => "GET",
+		        "header" => "Accept: application/sparql-results+json\r\n"
+		    ]
+		];
+		$context = stream_context_create($opts);
+		$json = file_get_contents($url, false, $context);
+		$data = json_decode($json,true);
+
+		// fill array
+        $values = array("events"=>array(),"actors"=>array());
+        $rec = $data['results']['bindings'][0];
+        $points = str_replace(array("Point(",")"),"",$rec['placegeom']['value']);
+        $latlon = explode(" ", $points);
+        $values['location'] = array(
+        	"place" => $rec['place']['value'],
+    		"placelabel" => $rec['placelabel']['value'],
+    		"lat" => $latlon[1],
+    		"lon" => $latlon[0],
+    		"article" => $rec['article']['value']
+		);
+        $beenthere = array();
+        foreach ($data['results']['bindings'] as $rec) {
+        	if(!in_array($rec['event']['value'], $beenthere)){
+        		$values['events'][] = array(
+					"event" => $rec['event']['value'],
+					"label" => $rec['eventlabel']['value'],
+					"begin" => $rec['begin']['value'],
+					"end" => $rec['end']['value']
+		    	);
+        	}
+        	$beenthere[]=$rec['place']['value'];
+        }
+        $beenthere = array();
+        foreach ($data['results']['bindings'] as $rec) {
+        	if(strlen($rec['actorid']['value']) && !in_array($rec['actorid']['value'], $beenthere)){
+	        	$values["actors"][] = array(
+	        		"actorlabel" => $rec['actorlabel']['value'],
+	        		"actorid" => $rec['actorid']['value']
+	        	);
+	        	$beenthere[]=$rec['actorid']['value'];
+	        }
+        }
+        return $values;
+    }
+
 }
