@@ -99,7 +99,7 @@ class AdamlinkMapper {
         }
         $beenthere = array();
         foreach ($data['results']['bindings'] as $rec) {
-        	if(strlen($rec['label']['value']) && !in_array($rec['img']['value'], $beenthere)){
+        	if(strlen($rec['cho']['value']) && !in_array($rec['cho']['value'], $beenthere)){
 	        	$values["imgs"][] = array(
 	        		"begin" => $rec['begin']['value'],
 	        		"end" => $rec['end']['value'],
@@ -108,7 +108,7 @@ class AdamlinkMapper {
 	        		"title" => $rec['title']['value'],
 	        		"description" => $rec['description']['value']
 	        	);
-	        	$beenthere[]=$rec['img']['value'];
+	        	$beenthere[]=$rec['cho']['value'];
 	        }
         }
         $beenthere = array();
