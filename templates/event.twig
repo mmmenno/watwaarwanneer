@@ -1,19 +1,58 @@
 
-{% extends 'layout.twig' %}
+{% extends 'layout2.twig' %}
 
 {% block content %}
     <div class="col-md-4">
         <h2>{{ data.event.label }}</h2>
-        {{ data.event.time }}
+        <strong>{{ data.event.time }}</strong><br />
+        een <a href="{{ data.event.type }}">{{ data.event.typelabel }}</a>
 
+        <h3 class="typeheading">locatie</h3>
 
         {% for location in data.locations %}
             <h3>{{ location.placelabel }}</h3>
             <strong><a href="{{ location.place }}">{{ location.place }}</a></strong><br /> 
             <strong><a href="{{ location.article }}">{{ location.article }}</a></strong>
+
+            {% if location.lat is not empty %}
+                <div class="map" id="mapid{{ event.id }}"></div>
+                <script>
+                    if (typeof mymap !== 'undefined') {
+                        mymap.off();
+                        mymap.remove();
+                    }
+                    mymap = L.map('mapid{{ event.id }}').setView([ {{ location.lat }} , {{ location.lon }} ], 16);
+
+                    L.tileLayer('//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+                        maxZoom: 19
+                    }).addTo(mymap);
+
+                    var circle = L.circleMarker([{{ location.lat }} , {{ location.lon }}], {
+                        fillColor: '#f03',
+                        fillOpacity: 0.5,
+                        opacity: 0,
+                        radius: 15
+                    }).addTo(mymap);
+
+                </script>
+            {% endif %}
+
         {% endfor %}
     	    
+        <h3 class="typeheading">actoren</h3>
         
+        {% for actor in data.actors %}
+            <h3>{{ actor.actorlabel }}</h3>
+            {% if actor.actordescription is not empty %}
+                <p>{{ actor.actordescription }}</p> 
+            {% endif %}
+            {% if actor.actorrole is not empty %}
+                <p>rol: {{ actor.actorrole }}</p>
+            {% endif %}
+            <strong><a href="{{ actor.actorpage }}">{{ actor.actorpage }}</a></strong>
+            <strong><a href="{{ actor.actor }}">{{ actor.actor }}</a></strong>
+        {% endfor %}
 
     </div>
     <div class="col-md-4 eventimgs">
@@ -22,7 +61,13 @@
         {% set half = half|round %}
 
     	{% for img in data.chobjects|slice(0,half) %}
-            <img src="{{ img.img }}" />
+            {% if img.img == "" %}
+                <a style="margin-top:16px; display:inline-block;" target="_blank" href="{{ img.cho }}">{{ img.cho }}</a> <br />
+                <a target="_blank" href="{{ img.cho }}">bekijk</a> afbeelding bij instelling
+            {% else %}
+                <a href="{{ img.cho }}"><img src="{{ img.img }}" /></a>
+            {% endif %}
+            
             <h4>{{ img.title }}</h4>
             <p>{{ img.description }}</p>
         {% endfor %}
@@ -31,7 +76,13 @@
     <div class="col-md-4 eventimgs">
         
     	{% for img in data.chobjects|slice(half) %}
-            <img src="{{ img.img }}" />
+            {% if img.img == "" %}
+                <a style="margin-top:16px; display:inline-block;" target="_blank" href="{{ img.cho }}">{{ img.cho }}</a> <br />
+                <a target="_blank" href="{{ img.cho }}">bekijk</a> afbeelding bij instelling
+            {% else %}
+                <a href="{{ img.cho }}"><img src="{{ img.img }}" /></a>
+            {% endif %}
+            
             <h4>{{ img.title }}</h4>
             <p>{{ img.description }}</p>
         {% endfor %}

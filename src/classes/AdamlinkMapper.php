@@ -8,17 +8,23 @@ class AdamlinkMapper {
 			PREFIX dc: <http://purl.org/dc/elements/1.1/>
 			PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 			PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+			PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 			PREFIX wd: <http://www.wikidata.org/entity/>
 			PREFIX sem: <http://semanticweb.cs.vu.nl/2009/11/sem/>
+			PREFIX dbo: <http://dbpedia.org/ontology/>
 			PREFIX www: <https://watwaarwanneer.info/event/>
-			SELECT ?label ?begin ?end ?place ?placelabel ?cho ?img ?title ?description ?article WHERE {
+			SELECT ?actor ?actorlabel ?actorrole ?actordescription ?actorpage ?type ?typelabel ?label ?begin ?end ?place ?placelabel ?placegeom ?cho ?img ?title ?description ?article WHERE {
 			  www:' . $id . ' rdfs:label ?label .
 			  www:' . $id . ' sem:hasEarliestBeginTimeStamp ?begin .
 			  www:' . $id . ' sem:hasLatestEndTimeStamp ?end .
 			  www:' . $id . ' sem:hasPlace ?place .
+			  www:' . $id . ' sem:eventType ?type .
+			  ?type rdfs:label ?typelabel .
 			  OPTIONAL{ 
 			  	?cho dc:subject www:' . $id . ' .
-			  	?cho foaf:depiction ?img .
+			  	OPTIONAL{ 
+			  		?cho foaf:depiction ?img .
+			  	}
 			  	OPTIONAL{ 
 				  	?cho dc:title ?title .
 				  	?cho dc:description ?description .
@@ -26,11 +32,28 @@ class AdamlinkMapper {
 			  }
 			  ?place rdfs:label ?placelabel .
 			  OPTIONAL{ 
+			  	?place geo:hasGeometry/geo:asWKT ?placegeom .
+			  }
+			  OPTIONAL{ 
 			  	?place foaf:isPrimaryTopicOf ?article .
+			  }
+			  OPTIONAL{ 
+			  	www:' . $id . ' sem:hasActor ?actorbn .
+			  	?actorbn rdf:value ?actor .
+			  	?actor rdfs:label ?actorlabel .
+			  	OPTIONAL{
+			  		?actor dc:description ?actordescription .
+			  	}
+			  	OPTIONAL{
+			  		?actorbn dbo:role ?actorrole .
+			  	}
+			  	OPTIONAL{
+			  		?actor foaf:isPrimaryTopicOf ?actorpage .
+			  	}
 			  }
 			  
 			} 
-			LIMIT 100
+			LIMIT 200
 		';
 
 		$url = "https://api.druid.datalegend.net/datasets/adamnet/all/services/endpoint/sparql?query=" . urlencode($sparqlquery) . "";
@@ -50,28 +73,34 @@ class AdamlinkMapper {
 		$data = json_decode($json,true);
 
 		// fill array
-        $values = array("venues"=>array(),"imgs"=>array());
+        $values = array("venues"=>array(),"imgs"=>array(),"actors"=>array());
         $rec = $data['results']['bindings'][0];
         $values['event'] = array(
 			"label" => $rec['label']['value'],
+	        "type" => $rec['type']['value'],
+	        "typelabel" => $rec['typelabel']['value'],
 			"begin" => $rec['begin']['value'],
 			"end" => $rec['end']['value']
 		);
         $beenthere = array();
         foreach ($data['results']['bindings'] as $rec) {
         	if(!in_array($rec['place']['value'], $beenthere)){
+        		$points = str_replace(array("Point(",")"),"",$rec['placegeom']['value']);
+        		$latlon = explode(" ", $points);
 		    	$values['venues'][] = array(
 		    		"place" => $rec['place']['value'],
 		    		"placelabel" => $rec['placelabel']['value'],
+		    		"lat" => $latlon[1],
+		    		"lon" => $latlon[0],
 		    		"article" => $rec['article']['value']
 		    	);
         	}
         	$beenthere[]=$rec['place']['value'];
         }
+        $beenthere = array();
         foreach ($data['results']['bindings'] as $rec) {
-        	if(strlen($rec['label']['value'])){
+        	if(strlen($rec['label']['value']) && !in_array($rec['img']['value'], $beenthere)){
 	        	$values["imgs"][] = array(
-	        		"label" => $rec['label']['value'],
 	        		"begin" => $rec['begin']['value'],
 	        		"end" => $rec['end']['value'],
 	        		"cho" => $rec['cho']['value'],
@@ -79,6 +108,20 @@ class AdamlinkMapper {
 	        		"title" => $rec['title']['value'],
 	        		"description" => $rec['description']['value']
 	        	);
+	        	$beenthere[]=$rec['img']['value'];
+	        }
+        }
+        $beenthere = array();
+        foreach ($data['results']['bindings'] as $rec) {
+        	if(strlen($rec['actor']['value']) && !in_array($rec['actor']['value'], $beenthere)){
+	        	$values["actors"][] = array(
+	        		"actorlabel" => $rec['actorlabel']['value'],
+	        		"actor" => $rec['actor']['value'],
+	        		"actorrole" => $rec['actorrole']['value'],
+	        		"actorpage" => $rec['actorpage']['value'],
+	        		"actordescription" => $rec['actordescription']['value']
+	        	);
+	        	$beenthere[]=$rec['actor']['value'];
 	        }
         }
         return $values;

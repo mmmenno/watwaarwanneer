@@ -42,8 +42,9 @@ $app->get('/event/{id}', function (Request $request, Response $response, $args) 
 	$hrperiod = $period->humanreadable();
 	$event['event']['time'] = $hrperiod;
 
-	$data = array("event"=>$event['event'],"chobjects"=>$event['imgs'],"locations"=>$event['venues']);
+	$data = array("event"=>$event['event'],"chobjects"=>$event['imgs'],"locations"=>$event['venues'],"actors"=>$event['actors']);
 	
+	//print_r($data);
 	$response = $this->view->render(
         $response,
         'event.twig',

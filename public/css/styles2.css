@@ -1,0 +1,65 @@
+body{
+	padding-top: 0;
+	padding-bottom: 100px;
+	background-color: #fff;
+}
+#head h1, .typeheading{
+	background-color: #FEA2BB;
+	color: #fff;
+	padding: 6px 12px;
+}
+p{
+	margin: 8px 0;
+}
+a,a:hover{
+	color: #FC497C;
+}
+.listitem a{
+	color: #000;
+	font-weight: bold;
+	text-decoration: none;
+	cursor: pointer;
+}
+.listitem div{
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+.listitem div.when{
+	text-align: right;
+}
+.eventpresentation, .eventdata{
+	display: none;
+	box-shadow: inset 1px 1px 16px 0 #ccc;
+	background-color: #fff;
+	padding-top: 60px;
+	padding-bottom: 60px;
+}
+.presentationtxt{
+	text-align: right;
+}
+.presentationtxt h3{
+	margin-top: 0;
+}
+.presentationimg img, .eventimgs img{
+	width: 100%;
+	margin-bottom: 6px;
+}
+.eventimgs img{
+	margin-top: 24px;
+}
+.btn-default{
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+.map{
+	height: 200px;
+	background-color: #ccc;
+	margin-top: 16px;
+}
+#search{
+	text-align: right;
+}
+.form-control{
+	width: 150px;
+	display: inline-block;
+}
