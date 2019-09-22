@@ -55,3 +55,19 @@ a,a:hover{
 	width: 150px;
 	display: inline-block;
 }
+h1{
+	background-color: #fff;
+	padding: 20px;
+}
+h3{
+	background-color: #fff;
+	padding: 12px 20px;
+}
+p{
+	font-size: 16px;
+	padding: 0 20px;
+}
+.home a{
+	background-color: #fff;
+	padding: 1px 5px;
+}

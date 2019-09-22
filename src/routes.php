@@ -9,6 +9,20 @@ use Slim\Http\Response;
 $app->get('/', function (Request $request, Response $response, $args) {
 
 
+	$data = array();
+
+    $response = $this->view->render(
+        $response,
+        'hello.twig',
+        ["data"=>$data]
+    );
+    return $response;
+})->setName('home');
+
+
+$app->get('/timeline', function (Request $request, Response $response, $args) {
+
+
 	$mapper = new TimelineMapper($this->pdo);
     $events = $mapper->getEvents($_GET);
     $eventtypes = $mapper->getTypes();

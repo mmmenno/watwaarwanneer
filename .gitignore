@@ -9,4 +9,5 @@ storage/log/*
 .idea/
 .DS_Store
 composer.phar
+public/data/*
 
