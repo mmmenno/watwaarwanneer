@@ -20,7 +20,7 @@ $app->get('/', function (Request $request, Response $response, $args) {
 })->setName('home');
 
 
-$app->get('/timeline', function (Request $request, Response $response, $args) {
+$app->get('/timeline[/]', function (Request $request, Response $response, $args) {
 
 
 	$mapper = new TimelineMapper($this->pdo);

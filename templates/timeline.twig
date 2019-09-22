@@ -2,7 +2,7 @@
 
 {% block search %}
 
-	<form action="/" method="get">
+	<form action="/timeline/" method="get">
 		<select class="form-control" name="eventtype">
 			<option value="">-- type --</option>
 			{% for type in data.eventtypes %}
@@ -16,7 +16,7 @@
 			{% endfor %}
 		</select>
 		<input class="btn btn-default" type="submit" value="go"> 
-		<a href="/" class="btn btn-default">clear</a>
+		<a href="/timeline/" class="btn btn-default">clear</a>
 	</form>
 
 {% endblock %}
