@@ -216,4 +216,93 @@ class AdamlinkMapper {
         return $values;
     }
 
+
+
+
+
+
+
+
+    public function getLocations($eventtypeid) {
+
+		$sparqlquery = '
+			PREFIX owl: <http://www.w3.org/2002/07/owl#>
+			PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+			PREFIX dct: <http://purl.org/dc/terms/>
+			PREFIX dc: <http://purl.org/dc/elements/1.1/>
+			PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+			PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+			PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+			PREFIX wd: <http://www.wikidata.org/entity/>
+			PREFIX sem: <http://semanticweb.cs.vu.nl/2009/11/sem/>
+			SELECT ?place ?placelabel ?placegeom (COUNT(?event) AS ?nr) WHERE {
+				?place a sem:Place .
+				?place geo:hasGeometry/geo:asWKT ?placegeom .
+				?place rdfs:label ?placelabel .
+				?event sem:hasPlace ?place .
+				?event sem:eventType wd:' . $eventtypeid . ' .
+			}
+			GROUP BY ?place ?placelabel ?placegeom
+			ORDER BY DESC(?nr)
+			LIMIT 500
+		';
+
+		$url = "https://api.druid.datalegend.net/datasets/adamnet/all/services/endpoint/sparql?query=" . urlencode($sparqlquery) . "";
+
+		$querylink = "https://druid.datalegend.net/AdamNet/all/sparql/endpoint#query=" . urlencode($sparqlquery) . "&endpoint=https%3A%2F%2Fdruid.datalegend.net%2F_api%2Fdatasets%2FAdamNet%2Fall%2Fservices%2Fendpoint%2Fsparql&requestMethod=POST&outputFormat=table";
+
+
+		// Druid does not like url parameters, send accept header instead
+		$opts = [
+		    "http" => [
+		        "method" => "GET",
+		        "header" => "Accept: application/sparql-results+json\r\n"
+		    ]
+		];
+		$context = stream_context_create($opts);
+		$json = file_get_contents($url, false, $context);
+		$data = json_decode($json,true);
+
+
+		// fill array
+		$features = array();
+        foreach ($data['results']['bindings'] as $rec) {
+        	$points = str_replace(array("Point(",")"),"",$rec['placegeom']['value']);
+        	$latlon = explode(" ", $points);
+    		$features[] = array(
+				"type" => "Feature",
+				"geometry" => array(
+					"type" => "Point",
+					"coordinates" => array((float)$latlon[0],(float)$latlon[1])
+				),
+				"properties" => array(
+					"label" => $rec['placelabel']['value'],
+					"wd" => str_replace("http://www.wikidata.org/entity/","",$rec['place']['value']),
+					"nr" => $rec['nr']['value']
+				)
+	    	);
+        }
+
+        return $features;
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

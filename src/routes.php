@@ -95,6 +95,36 @@ $app->get('/location/{id}', function (Request $request, Response $response, $arg
 });
 
 
+$app->get('/locations/{id}', function (Request $request, Response $response, $args) {
+
+	$data = array("eventtype"=>$args['id']);
+	
+	$response = $this->view->render(
+        $response,
+        'locations-map.twig',
+        [
+        	"data"=>$data
+    	]
+    );
+    return $response;
+});
+
+
+$app->get('/geojson/{eventtype}', function (Request $request, Response $response, $args) {
+
+	$mapper = new AdamlinkMapper();
+    $features = $mapper->getLocations($args['eventtype']);
+
+    
+    $geojson = array(
+    	"type" => "FeatureCollection",
+		"features" => $features
+	);
+    
+    return json_encode($geojson);
+});
+
+
 $app->get('/parts/presentation/{id}', function (Request $request, Response $response, $args) {
 
 	$mapper = new TimelineMapper($this->pdo);

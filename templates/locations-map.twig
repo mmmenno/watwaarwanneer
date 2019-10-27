@@ -1,0 +1,153 @@
+
+{% extends 'layout2.twig' %}
+
+{% block header %}
+    <div class="col-md-12">
+      <h1>watwaarwanneer / locations</h1>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="col-md-8">
+        
+
+        
+        <div class="locationsmap" id="map"></div>
+        <script>
+
+
+            $(document).ready(function(){
+                createMap();
+                refreshMap();
+            });
+
+
+
+            function createMap(){
+                center = [52.090736, 5.121420];
+                zoomlevel = 8;
+                
+                map = L.map('map', {
+                    center: center,
+                    zoom: zoomlevel,
+                    minZoom: 1,
+                    maxZoom: 19,
+                    scrollWheelZoom: true,
+                    zoomControl: false
+                });
+
+                L.control.zoom({
+                    position: 'bottomright'
+                }).addTo(map);
+
+                L.tileLayer('//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(map);
+            }
+
+
+            function refreshMap(){
+        
+                $.ajax({
+                    type: 'GET',
+                    url: '/geojson/{{ data.eventtype }}',
+                    dataType: 'json',
+                    success: function(jsonData) {
+                        if (typeof places !== 'undefined') {
+                            map.removeLayer(places);
+                        }
+                        places = L.geoJson(null, {
+                            pointToLayer: function (feature, latlng) {                    
+                                return new L.CircleMarker(latlng, {
+                                    color: "#FC3272",
+                                    radius:8,
+                                    weight: 1,
+                                    opacity: 0.8,
+                                    fillOpacity: 0.5
+                                });
+                            },
+                            style: function(feature) {
+                                return {
+                                    color: getColor(feature.properties.nr),
+                                    radius: getSize(feature.properties.nr),
+                                    clickable: true
+                                };
+                            },
+                            onEachFeature: function(feature, layer) {
+                                layer.on({
+                                    click: whenClicked
+                                });
+                            }
+                        }).addTo(map);
+                        places.addData(jsonData).bringToFront();
+                        
+                        map.fitBounds(places.getBounds());
+                        
+                        //$('#straatinfo').html('');
+                    },
+                    error: function() {
+                        console.log('Error loading data');
+                    }
+                });
+            }
+
+            function getSize(d) {
+                return d > 300 ? 20 :
+                       d > 160 ? 16 :
+                       d > 80  ? 14 :
+                       d > 40  ? 12 :
+                       d > 15 ? 10 :
+                       d > 5  ? 8 :
+                       d > 2  ? 6 :
+                       d > 0  ? 4 :
+                                 3;
+            }
+
+            function getColor(d) {
+                return d > 160 ? '#FC3272' :
+                       d > 80 ? '#FC3272' :
+                       d > 40  ? '#FC3272' :
+                       d > 20  ? '#FC3272' :
+                       d > 0  ? '#FC3272' :
+                                 '#FC3272';
+            }
+
+            function whenClicked(){
+                console.log(this.feature.properties.label);
+                $("#placelabel").html(this.feature.properties.label);
+                if(this.feature.properties.nr == 1){
+                    var nrtext = 'Op deze locatie is ' + this.feature.properties.nr + ' gebeurtenis gevonden';
+                }else{
+                    var nrtext = 'Op deze locatie zijn ' + this.feature.properties.nr + ' gebeurtenissen gevonden';
+                }
+                $("#placenr").html(nrtext);    
+                $("#placelink").html('<a href="/location/' + this.feature.properties.wd + '">bekijk alle gebeurtenissen op deze plaats</a>');
+            
+            }
+
+            
+
+        </script>
+
+        
+    	    
+        
+
+    </div>
+    <div class="col-md-4">
+        <h3 class="typeheading" id="placelabel">Klik op een plaats voor info</h3>
+
+        <p id="placenr"></p>
+
+        <p id="placelink"></p>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
