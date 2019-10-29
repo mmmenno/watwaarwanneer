@@ -98,7 +98,37 @@ $app->get('/location/{id}', function (Request $request, Response $response, $arg
 $app->get('/locations/{id}', function (Request $request, Response $response, $args) {
 
 	$data = array("eventtype"=>$args['id']);
-	
+
+	// even met de hand voor nu, query:
+	//	SELECT * WHERE {
+	//	  ?et a sem:EventType .
+	//	  ?et rdfs:label ?etlabel
+	//	} 
+	//	order by ?etlabel
+	$data['eventtypes'] = array(
+		"Q188055" => "belegering",
+		"Q2761147" => "bijeenkomst",
+		"Q168983" => "brand",
+		"Q18752057" => "ceremonie van eerste steenlegging",
+		"Q1068633" => "de eerste spade",
+		"Q657221" => "diner",
+		"Q950249" => "hostiewonder",
+		"Q15955568" => "jubileum",
+		"Q350604" => "militair conflict",
+		"Q1673271" => "Olympische Zomerspelen",
+		"Q15051339" => "opening",
+		"Q3010369" => "openingsceremonie",
+		"Q124734" => "opstand",
+		"Q657449" => "optocht",
+		"Q3839081" => "ramp",
+		"Q124757" => "rel",
+		"Q838718" => "stadsbrand",
+		"Q464980" => "tentoonstelling",
+		"Q500834" => "toernooi",
+		"Q201676" => "uitvaart",
+		"Q686984" => "volksopstand"
+	);
+
 	$response = $this->view->render(
         $response,
         'locations-map.twig',

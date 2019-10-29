@@ -21,7 +21,12 @@
                 refreshMap();
             });
 
-
+            {% for key,label in data.eventtypes %}
+                {% if key == data.eventtype %}
+                    thistypelabel = '{{ label }}';
+                {% endif %}
+            {% endfor %}
+            
 
             function createMap(){
                 center = [52.090736, 5.121420];
@@ -118,9 +123,9 @@
                 console.log(this.feature.properties.label);
                 $("#placelabel").html(this.feature.properties.label);
                 if(this.feature.properties.nr == 1){
-                    var nrtext = 'Op deze locatie is ' + this.feature.properties.nr + ' gebeurtenis gevonden';
+                    var nrtext = 'Op deze locatie is ' + this.feature.properties.nr + ' gebeurtenis van het type ' + thistypelabel + ' gevonden';
                 }else{
-                    var nrtext = 'Op deze locatie zijn ' + this.feature.properties.nr + ' gebeurtenissen gevonden';
+                    var nrtext = 'Op deze locatie zijn ' + this.feature.properties.nr + ' gebeurtenissen van het type ' + thistypelabel + ' gevonden';
                 }
                 $("#placenr").html(nrtext);    
                 $("#placelink").html('<a href="/location/' + this.feature.properties.wd + '">bekijk alle gebeurtenissen op deze plaats</a>');
@@ -142,6 +147,28 @@
         <p id="placenr"></p>
 
         <p id="placelink"></p>
+
+
+
+        <h3 class="typeheading">Ander gebeurtenistype?</h3>
+
+        <select id="typeselect">
+            {% for key,label in data.eventtypes %}
+                {% if key == data.eventtype %}
+                    <option selected="selected" value="{{ key }}">{{ label }}</option>
+                {% else %}
+                    <option value="{{ key }}">{{ label }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        <script>
+            $('#typeselect').change(function(){
+                //console.log($('#typeselect').val());
+                window.location.href = "/locations/" + $('#typeselect').val();
+            });
+        </script>
+
     </div>
 {% endblock %}
 
