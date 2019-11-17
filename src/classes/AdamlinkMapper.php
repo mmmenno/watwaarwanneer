@@ -160,7 +160,7 @@ class AdamlinkMapper {
 			  }
 			} 
 			ORDER BY ASC(?begin)
-			LIMIT 1000
+			LIMIT 2000
 		';
 
 		$url = "https://api.druid.datalegend.net/datasets/adamnet/all/services/endpoint/sparql?query=" . urlencode($sparqlquery) . "";
