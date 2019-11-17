@@ -244,7 +244,7 @@ class AdamlinkMapper {
 			}
 			GROUP BY ?place ?placelabel ?placegeom
 			ORDER BY DESC(?nr)
-			LIMIT 500
+			LIMIT 1000
 		';
 
 		$url = "https://api.druid.datalegend.net/datasets/adamnet/all/services/endpoint/sparql?query=" . urlencode($sparqlquery) . "";
