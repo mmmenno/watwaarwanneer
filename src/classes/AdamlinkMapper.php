@@ -201,7 +201,7 @@ class AdamlinkMapper {
 					"end" => $rec['end']['value']
 		    	);
         	}
-        	$beenthere[]=$rec['place']['value'];
+        	$beenthere[]=$rec['event']['value'];
         }
         $beenthere = array();
         foreach ($data['results']['bindings'] as $rec) {
